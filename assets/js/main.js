@@ -1,5 +1,62 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Lógica de FAQ (Preguntas Frecuentes)
+  // --- Lógica del Modal de WhatsApp ---
+  const modal = document.getElementById('wa-modal');
+  const closeBtn = document.getElementById('close-wa-modal');
+  const waForm = document.getElementById('wa-form');
+  const openWaBtns = document.querySelectorAll('.open-wa-modal');
+
+  // Abrir Modal
+  if (openWaBtns.length > 0 && modal) {
+    openWaBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'flex';
+      });
+    });
+  }
+
+  // Cerrar Modal con la 'X'
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  }
+
+  // Cerrar Modal clickeando fuera de la caja
+  if (modal) {
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+
+  // Enviar el formulario a WhatsApp
+  if (waForm) {
+    waForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const nombre = document.getElementById('wa-nombre').value.trim();
+      const monto = document.getElementById('wa-monto').value.trim();
+      const cantidad = document.getElementById('wa-cantidad').value.trim();
+      
+      // Número de teléfono configurado previamente (+595 987 188642)
+      const phone = '595987188642';
+      
+      // Armar el mensaje
+      const message = `Hola, soy *${nombre}*.%0AQuiero solicitar un envío con Puente Paraguay.%0A📦 *Cantidad de productos:* ${cantidad}%0A💰 *Valor estimado de compra:* USD ${monto}%0A%0A¿Podrían brindarme más información?`;
+      
+      // Generar link de WhatsApp y abrirlo
+      const waUrl = `https://wa.me/${phone}?text=${message}`;
+      window.open(waUrl, '_blank');
+      
+      // Cerrar y limpiar el modal
+      modal.style.display = 'none';
+      waForm.reset();
+    });
+  }
+
+  // --- Lógica de FAQ (Preguntas Frecuentes) ---
   const faqItems = document.querySelectorAll('.faq-item');
   
   faqItems.forEach(item => {
