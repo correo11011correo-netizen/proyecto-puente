@@ -1,11 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Función Global: Obtener clase CSS para Badges ---
+  const getBadgeClass = (status) => {
+      switch(status) {
+          case 'Recibido en CDE': return 'status-received';
+          case 'Despachando': return 'status-received';
+          case 'En tránsito': return 'status-transit';
+          case 'Llegó a destino': return 'status-transit';
+          case 'Listo para retirar': return 'status-delivered';
+          case 'Entregado': return 'status-delivered';
+          default: return 'status-received';
+      }
+  };
+
   // --- Lógica del Modal de WhatsApp ---
   const modal = document.getElementById('wa-modal');
   const closeBtn = document.getElementById('close-wa-modal');
   const waForm = document.getElementById('wa-form');
   const openWaBtns = document.querySelectorAll('.open-wa-modal');
 
-  // Abrir Modal
   if (openWaBtns.length > 0 && modal) {
     openWaBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -15,14 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Cerrar Modal con la 'X'
   if (closeBtn && modal) {
     closeBtn.addEventListener('click', () => {
       modal.style.display = 'none';
     });
   }
 
-  // Cerrar Modal clickeando fuera de la caja
   if (modal) {
     window.addEventListener('click', (e) => {
       if (e.target === modal) {
@@ -31,74 +41,109 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Enviar el formulario a WhatsApp
   if (waForm) {
     waForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
       const nombre = document.getElementById('wa-nombre').value.trim();
       const monto = document.getElementById('wa-monto').value.trim();
       const cantidad = document.getElementById('wa-cantidad').value.trim();
-      
-      // Número de teléfono configurado previamente (+595 987 188642)
       const phone = '595987188642';
-      
-      // Armar el mensaje
       const message = `Hola, soy *${nombre}*.%0AQuiero solicitar un envío con Puente Paraguay.%0A📦 *Cantidad de productos:* ${cantidad}%0A💰 *Valor estimado de compra:* USD ${monto}%0A%0A¿Podrían brindarme más información?`;
-      
-      // Generar link de WhatsApp y abrirlo
-      const waUrl = `https://wa.me/${phone}?text=${message}`;
-      window.open(waUrl, '_blank');
-      
-      // Cerrar y limpiar el modal
+      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
       modal.style.display = 'none';
       waForm.reset();
     });
   }
 
-  // --- Lógica de FAQ (Preguntas Frecuentes) ---
+  // --- Lógica de FAQ ---
   const faqItems = document.querySelectorAll('.faq-item');
-  
   faqItems.forEach(item => {
     const question = item.querySelector('.faq-question');
     if (question) {
       question.addEventListener('click', () => {
-        // Cerrar las otras pestañas
         faqItems.forEach(otherItem => {
-          if (otherItem !== item) {
-            otherItem.classList.remove('active');
-          }
+          if (otherItem !== item) otherItem.classList.remove('active');
         });
-        // Alternar la pestaña actual
         item.classList.toggle('active');
       });
     }
   });
 
-  // Sistema de Datos (localStorage) para el Panel Admin
+  // --- Sistema de Datos de Paquetes (localStorage) ---
+  const getPackages = () => {
+      const savedData = localStorage.getItem('puentePackages');
+      if (!savedData) {
+          // Datos iniciales de prueba si está vacío
+          const initialData = [
+              { tracking: '#PP-1045', client: 'Juan Pérez', destination: 'CABA', status: 'En tránsito', history: [{date: new Date().toLocaleDateString(), status: 'Recibido en CDE', notes: 'Recibido en oficina Paraguay'}, {date: new Date().toLocaleDateString(), status: 'En tránsito', notes: 'Cruzando hacia Puerto Iguazú'}] },
+              { tracking: '#PP-1046', client: 'María Gómez', destination: 'Rosario', status: 'Recibido en CDE', history: [{date: new Date().toLocaleDateString(), status: 'Recibido en CDE', notes: 'Esperando despacho'}] }
+          ];
+          localStorage.setItem('puentePackages', JSON.stringify(initialData));
+          return initialData;
+      }
+      return JSON.parse(savedData);
+  };
+
+  const savePackages = (packages) => {
+      localStorage.setItem('puentePackages', JSON.stringify(packages));
+  };
+
+  // --- Lógica del Cliente: Seguimiento de Paquete (index.html) ---
+  const trackingForm = document.getElementById('tracking-form');
+  if (trackingForm) {
+      trackingForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const trackingNumber = document.getElementById('tracking-input').value.trim().toUpperCase();
+          const packages = getPackages();
+          const pkg = packages.find(p => p.tracking.toUpperCase() === trackingNumber);
+          
+          const resultDiv = document.getElementById('tracking-result');
+          const errorDiv = document.getElementById('tracking-error');
+          
+          if (pkg) {
+              errorDiv.style.display = 'none';
+              resultDiv.style.display = 'block';
+              
+              document.getElementById('res-tracking-id').textContent = pkg.tracking;
+              document.getElementById('res-cliente').textContent = pkg.client;
+              document.getElementById('res-destino').textContent = pkg.destination;
+              
+              const historyList = document.getElementById('res-historial');
+              historyList.innerHTML = '';
+              pkg.history.forEach((step, index) => {
+                  const li = document.createElement('li');
+                  li.style.position = 'relative';
+                  li.style.padding = '10px 0 10px 20px';
+                  li.style.marginBottom = '10px';
+                  
+                  // Dot en la línea de tiempo
+                  const dot = document.createElement('span');
+                  dot.style.position = 'absolute';
+                  dot.style.left = '-6px';
+                  dot.style.top = '15px';
+                  dot.style.width = '10px';
+                  dot.style.height = '10px';
+                  dot.style.borderRadius = '50%';
+                  dot.style.backgroundColor = (index === pkg.history.length - 1) ? 'var(--secondary-color)' : '#ccc';
+                  
+                  li.appendChild(dot);
+                  li.innerHTML += `<strong>${step.status}</strong> <br><small style="color: #666;">${step.date} - ${step.notes || ''}</small>`;
+                  historyList.appendChild(li);
+              });
+          } else {
+              resultDiv.style.display = 'none';
+              errorDiv.style.display = 'block';
+          }
+      });
+  }
+
+  // --- Lógica de Administración (admin.html) ---
   const form = document.getElementById('new-package-form');
   const tableBody = document.getElementById('packages-table-body');
+  const updateModal = document.getElementById('update-modal');
+  const updateForm = document.getElementById('update-status-form');
 
   if (tableBody) {
-    // Función para obtener la clase de color según el estado
-    const getBadgeClass = (status) => {
-        if (status === 'Recibido en CDE') return 'status-received';
-        if (status === 'En tránsito') return 'status-transit';
-        if (status === 'Entregado') return 'status-delivered';
-        return 'status-received';
-    };
-
-    // Inicializar datos simulados si está vacío el almacenamiento
-    if (!localStorage.getItem('puentePackages')) {
-        const initialData = [
-            { tracking: '#PP-1045', client: 'Juan Pérez', destination: 'CABA', status: 'En tránsito' },
-            { tracking: '#PP-1046', client: 'María Gómez', destination: 'Rosario', status: 'Recibido en CDE' },
-            { tracking: '#PP-1042', client: 'Carlos López', destination: 'Córdoba', status: 'Entregado' }
-        ];
-        localStorage.setItem('puentePackages', JSON.stringify(initialData));
-    }
-
-    // Función para agregar una fila a la tabla
     const addPackageToTable = (pkg) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -106,73 +151,107 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${pkg.client}</td>
             <td>${pkg.destination}</td>
             <td><span class="status-badge ${getBadgeClass(pkg.status)}">${pkg.status}</span></td>
+            <td><button class="btn btn-update-status" data-id="${pkg.tracking}" style="padding: 5px 10px; font-size: 0.8rem;">Actualizar</button></td>
         `;
         tableBody.appendChild(tr); 
     };
 
-    // Cargar paquetes desde localStorage al entrar
-    const loadPackages = () => {
-        const savedData = localStorage.getItem('puentePackages');
-        if (savedData) {
-            const packages = JSON.parse(savedData);
-            if (packages.length > 0) {
-                tableBody.innerHTML = ''; // Limpiar datos en duro del HTML
-                packages.forEach(pkg => {
-                    addPackageToTable(pkg);
-                });
-            }
-        }
+    const renderTable = () => {
+        const packages = getPackages();
+        tableBody.innerHTML = ''; 
+        packages.forEach(pkg => addPackageToTable(pkg));
+
+        // Eventos para botones de Actualizar
+        document.querySelectorAll('.btn-update-status').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const trackingId = e.target.getAttribute('data-id');
+                document.getElementById('update-tracking-id').textContent = trackingId;
+                document.getElementById('update-tracking-input').value = trackingId;
+                
+                const pkg = getPackages().find(p => p.tracking === trackingId);
+                document.getElementById('update-status-select').value = pkg.status;
+                document.getElementById('update-location').value = ''; // Limpiar
+                
+                updateModal.style.display = 'flex';
+            });
+        });
     };
 
-    loadPackages();
+    renderTable();
 
-    // Evento al enviar el formulario (Registrar nuevo paquete)
+    // Evento Formulario Nuevo Paquete
     if (form) {
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        
         const client = document.getElementById('pkg-client').value;
         const destination = document.getElementById('pkg-destination').value;
         const status = document.getElementById('pkg-status').value;
         
-        // Generar un número de tracking aleatorio
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const tracking = '#PP-' + randomNum;
 
-        const newPackage = { tracking, client, destination, status };
+        // Crear paquete con historial inicial
+        const newPackage = { 
+            tracking, 
+            client, 
+            destination, 
+            status,
+            history: [
+                { date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), status: status, notes: 'Paquete ingresado al sistema' }
+            ]
+        };
 
-        // Guardar en el almacenamiento del navegador
-        const savedData = localStorage.getItem('puentePackages');
-        let packages = savedData ? JSON.parse(savedData) : [];
-        packages.unshift(newPackage); // Agregar al principio de la lista
-        localStorage.setItem('puentePackages', JSON.stringify(packages));
+        const packages = getPackages();
+        packages.unshift(newPackage);
+        savePackages(packages);
 
-        // Actualizar la interfaz (Agregar la fila arriba de todo en la tabla)
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${newPackage.tracking}</td>
-            <td>${newPackage.client}</td>
-            <td>${newPackage.destination}</td>
-            <td><span class="status-badge ${getBadgeClass(newPackage.status)}">${newPackage.status}</span></td>
-        `;
-        tableBody.insertBefore(tr, tableBody.firstChild);
-        
-        // Resetear el formulario
+        renderTable(); // Recargar tabla
         form.reset();
         
-        // Pequeña animación visual de confirmación en el botón
         const btn = form.querySelector('button');
         const originalText = btn.textContent;
         btn.textContent = '¡Registrado con éxito!';
-        btn.style.backgroundColor = '#28a745'; // Color verde de éxito
+        btn.style.backgroundColor = '#28a745'; 
         btn.style.color = 'white';
-        
         setTimeout(() => {
             btn.textContent = originalText;
             btn.style.backgroundColor = '';
             btn.style.color = '';
         }, 2500);
       });
+    }
+
+    // Cerrar Update Modal
+    document.getElementById('close-update-modal')?.addEventListener('click', () => {
+        updateModal.style.display = 'none';
+    });
+
+    // Guardar actualización de estado
+    if (updateForm) {
+        updateForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const trackingId = document.getElementById('update-tracking-input').value;
+            const newStatus = document.getElementById('update-status-select').value;
+            const newLocation = document.getElementById('update-location').value;
+
+            const packages = getPackages();
+            const pkgIndex = packages.findIndex(p => p.tracking === trackingId);
+            
+            if (pkgIndex > -1) {
+                packages[pkgIndex].status = newStatus;
+                packages[pkgIndex].history.push({
+                    date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    status: newStatus,
+                    notes: newLocation
+                });
+                
+                savePackages(packages);
+                renderTable(); // Recargar tabla
+                updateModal.style.display = 'none';
+                
+                alert(`Estado del paquete ${trackingId} actualizado con éxito.`);
+            }
+        });
     }
   }
 });

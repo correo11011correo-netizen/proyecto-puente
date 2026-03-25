@@ -47,6 +47,29 @@
         </div>
     </section>
 
+    <!-- Tracking Section -->
+    <section id="seguimiento" style="background-color: var(--primary-color); color: white; padding: 40px 20px; text-align: center;">
+        <h2 style="margin-bottom: 20px;">Rastrear Pedido</h2>
+        <form id="tracking-form" style="max-width: 500px; margin: auto; display: flex; gap: 10px;">
+            <input type="text" id="tracking-input" placeholder="Ingresa tu N° de Envío (Ej. #PP-1045)" required style="flex: 1; padding: 12px; border: none; border-radius: 5px; font-size: 1rem;">
+            <button type="submit" class="btn" style="background-color: var(--accent-color);">Buscar</button>
+        </form>
+        
+        <!-- Contenedor de resultados del Tracking -->
+        <div id="tracking-result" style="display: none; margin-top: 30px; background: white; color: var(--text-color); padding: 20px; border-radius: 8px; text-align: left; max-width: 600px; margin-inline: auto;">
+            <h3 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Estado del Envío: <span id="res-tracking-id" style="color: var(--primary-color);"></span></h3>
+            <p><strong>Cliente:</strong> <span id="res-cliente"></span></p>
+            <p><strong>Destino:</strong> <span id="res-destino"></span></p>
+            <p style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; color: var(--secondary-color);">Historial de Movimientos:</p>
+            <ul id="res-historial" style="list-style-type: none; padding-left: 15px; margin-top: 10px; border-left: 2px solid var(--secondary-color);">
+                <!-- Se llenará dinámicamente -->
+            </ul>
+        </div>
+        <div id="tracking-error" style="display: none; margin-top: 20px; color: #ffcccc; font-weight: bold;">
+            No se encontró ningún paquete con ese número. Verifica e intenta de nuevo.
+        </div>
+    </section>
+
     <!-- How it Works / Services -->
     <section id="servicios">
         <h2 class="section-title">Flujo Operativo: Paso a Paso</h2>
