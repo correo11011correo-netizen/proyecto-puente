@@ -248,12 +248,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const addPackageToTable = (pkg) => {
         // Fila principal
         const trMain = document.createElement('tr');
+        trMain.style.cursor = 'pointer';
         trMain.innerHTML = `
             <td><strong>${pkg.tracking}</strong></td>
             <td>${pkg.client}</td>
             <td>${pkg.destination}</td>
             <td><span class="status-badge ${getBadgeClass(pkg.status)}">${pkg.status}</span></td>
-            <td><button class="btn btn-toggle-details" style="padding: 5px 10px; font-size: 0.8rem; background-color: var(--primary-color);">Gestionar ▾</button></td>
         `;
         tableBody.appendChild(trMain); 
 
@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         trDetails.innerHTML = `
-            <td colspan="5" style="padding: 15px; border-top: 1px dashed #ddd; border-bottom: 2px solid var(--primary-color);">
+            <td colspan="4" style="padding: 15px; border-top: 1px dashed #ddd; border-bottom: 2px solid var(--primary-color);">
                 <div style="display: flex; flex-direction: column; gap: 15px;">
                     <div>
                         <h4 style="font-size: 0.9rem; color: var(--primary-color); margin-bottom: 5px;">Quejas y Mensajes del Cliente:</h4>
@@ -290,16 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.appendChild(trDetails);
 
         // Lógica para desplegar detalles
-        const toggleBtn = trMain.querySelector('.btn-toggle-details');
-        toggleBtn.addEventListener('click', () => {
+        trMain.addEventListener('click', () => {
             if (trDetails.style.display === 'none') {
                 trDetails.style.display = 'table-row';
-                toggleBtn.textContent = 'Cerrar ▴';
-                toggleBtn.style.backgroundColor = '#666';
+                trMain.style.backgroundColor = '#f4f6f8';
             } else {
                 trDetails.style.display = 'none';
-                toggleBtn.textContent = 'Gestionar ▾';
-                toggleBtn.style.backgroundColor = 'var(--primary-color)';
+                trMain.style.backgroundColor = '';
             }
         });
     };
