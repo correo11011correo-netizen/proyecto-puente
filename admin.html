@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Proyecto Puente</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Evitar Caché -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <script>document.write('<link rel="stylesheet" href="assets/css/style.css?t=' + Date.now() + '">');</script>
 </head>
 <body>
 
@@ -69,7 +74,7 @@
                                 <th>Estado</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="packages-table-body">
                             <tr>
                                 <td>#PP-1045</td>
                                 <td>Juan Pérez</td>
@@ -98,17 +103,22 @@
                     <form class="admin-form" id="new-package-form">
                         <div class="form-group">
                             <label>Nombre del Cliente</label>
-                            <input type="text" required placeholder="Ej. Ana Martínez">
+                            <input type="text" id="pkg-client" required placeholder="Ej. Ana Martínez">
+                        </div>
+                        <div class="form-group">
+                            <label>Destino</label>
+                            <input type="text" id="pkg-destination" required placeholder="Ej. Córdoba">
                         </div>
                         <div class="form-group">
                             <label>Peso (Kg)</label>
-                            <input type="number" step="0.1" required placeholder="0.0">
+                            <input type="number" id="pkg-weight" step="0.1" required placeholder="0.0">
                         </div>
                         <div class="form-group">
                             <label>Estado Inicial</label>
-                            <select>
-                                <option>Recibido en CDE</option>
-                                <option>Aguardando Documentación</option>
+                            <select id="pkg-status">
+                                <option value="Recibido en CDE">Recibido en CDE</option>
+                                <option value="En tránsito">En tránsito</option>
+                                <option value="Entregado">Entregado</option>
                             </select>
                         </div>
                         <button type="submit" class="btn">Registrar Paquete</button>
@@ -119,6 +129,6 @@
         </main>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <script>document.write('<script src="assets/js/main.js?t=' + Date.now() + '"><\\/script>');</script>
 </body>
 </html>
