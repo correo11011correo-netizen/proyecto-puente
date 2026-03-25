@@ -140,14 +140,86 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Lógica de Administración (admin.html) ---
   const form = document.getElementById('new-package-form');
   const tableBody = document.getElementById('packages-table-body');
+  const clientsTableBody = document.getElementById('clients-table-body');
   const updateModal = document.getElementById('update-modal');
   const updateForm = document.getElementById('update-status-form');
+
+  // Navegación por pestañas
+  const adminTabs = document.querySelectorAll('#admin-tabs a');
+  const adminSections = document.querySelectorAll('.admin-section');
+  
+  if (adminTabs.length > 0) {
+      adminTabs.forEach(tab => {
+          tab.addEventListener('click', (e) => {
+              if (tab.hasAttribute('data-target')) {
+                  e.preventDefault();
+                  
+                  // Cambiar clase activa en menú
+                  adminTabs.forEach(t => t.classList.remove('active'));
+                  tab.classList.add('active');
+                  
+                  // Mostrar sección correspondiente
+                  const targetId = tab.getAttribute('data-target');
+                  adminSections.forEach(sec => {
+                      sec.style.display = (sec.id === targetId) ? 'block' : 'none';
+                  });
+              }
+          });
+      });
+  }
+
+  // Actualizar métricas del Dashboard
+  const updateDashboardMetrics = (packages) => {
+      const cdeCount = packages.filter(p => p.status === 'Recibido en CDE' || p.status === 'Despachando').length;
+      const transitCount = packages.filter(p => p.status === 'En tránsito').length;
+      const deliveredCount = packages.filter(p => p.status === 'Entregado' || p.status === 'Listo para retirar').length;
+      
+      const elCde = document.getElementById('metric-cde');
+      const elTransit = document.getElementById('metric-transit');
+      const elDelivered = document.getElementById('metric-delivered');
+      
+      if(elCde) elCde.textContent = cdeCount;
+      if(elTransit) elTransit.textContent = transitCount;
+      if(elDelivered) elDelivered.textContent = deliveredCount;
+  };
+
+  // Actualizar Tabla de Clientes
+  const updateClientsTable = (packages) => {
+      if (!clientsTableBody) return;
+      
+      // Agrupar por cliente
+      const clientsMap = {};
+      packages.forEach(pkg => {
+          if (!clientsMap[pkg.client]) {
+              clientsMap[pkg.client] = { packages: [], lastDestination: pkg.destination };
+          }
+          clientsMap[pkg.client].packages.push(pkg.tracking);
+          // Actualizar último destino si es necesario (simplificado)
+          clientsMap[pkg.client].lastDestination = pkg.destination; 
+      });
+
+      clientsTableBody.innerHTML = '';
+      Object.keys(clientsMap).forEach(clientName => {
+          const clientData = clientsMap[clientName];
+          const tr = document.createElement('tr');
+          
+          // Formatear los IDs de los paquetes con badges
+          const badges = clientData.packages.map(id => `<span style="background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-bottom: 5px;">${id}</span>`).join('');
+          
+          tr.innerHTML = `
+              <td><strong>${clientName}</strong></td>
+              <td>${badges}</td>
+              <td>${clientData.lastDestination}</td>
+          `;
+          clientsTableBody.appendChild(tr);
+      });
+  };
 
   if (tableBody) {
     const addPackageToTable = (pkg) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${pkg.tracking}</td>
+            <td><strong>${pkg.tracking}</strong></td>
             <td>${pkg.client}</td>
             <td>${pkg.destination}</td>
             <td><span class="status-badge ${getBadgeClass(pkg.status)}">${pkg.status}</span></td>
@@ -156,10 +228,18 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.appendChild(tr); 
     };
 
-    const renderTable = () => {
+    const renderData = () => {
         const packages = getPackages();
-        tableBody.innerHTML = ''; 
-        packages.forEach(pkg => addPackageToTable(pkg));
+        
+        // Tabla de Paquetes
+        if (tableBody) {
+            tableBody.innerHTML = ''; 
+            packages.forEach(pkg => addPackageToTable(pkg));
+        }
+        
+        // Actualizar el resto del sistema
+        updateDashboardMetrics(packages);
+        updateClientsTable(packages);
 
         // Eventos para botones de Actualizar
         document.querySelectorAll('.btn-update-status').forEach(btn => {
@@ -177,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    renderTable();
+    renderData();
 
     // Evento Formulario Nuevo Paquete
     if (form) {
@@ -205,12 +285,25 @@ document.addEventListener('DOMContentLoaded', () => {
         packages.unshift(newPackage);
         savePackages(packages);
 
-        renderTable(); // Recargar tabla
+        renderData(); // Recargar todas las tablas y métricas
         form.reset();
+        
+        // Mostrar Alerta con el ID Generado
+        const alertBox = document.getElementById('generated-id-alert');
+        const idSpan = document.getElementById('new-generated-id');
+        if (alertBox && idSpan) {
+            idSpan.textContent = tracking;
+            alertBox.style.display = 'block';
+            
+            // Ocultar alerta después de unos segundos
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 8000);
+        }
         
         const btn = form.querySelector('button');
         const originalText = btn.textContent;
-        btn.textContent = '¡Registrado con éxito!';
+        btn.textContent = '¡Registrado!';
         btn.style.backgroundColor = '#28a745'; 
         btn.style.color = 'white';
         setTimeout(() => {
@@ -246,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 savePackages(packages);
-                renderTable(); // Recargar tabla
+                renderData(); // Recargar todo el sistema
                 updateModal.style.display = 'none';
                 
                 alert(`Estado del paquete ${trackingId} actualizado con éxito.`);

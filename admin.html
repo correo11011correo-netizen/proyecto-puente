@@ -25,97 +25,128 @@
                 </svg>
             </div>
             <nav>
-                <ul>
-                    <li><a href="#" class="active">Dashboard</a></li>
-                    <li><a href="#">Paquetes</a></li>
-                    <li><a href="#">Clientes</a></li>
+                <ul id="admin-tabs">
+                    <li><a href="#" class="active" data-target="sec-dashboard">Dashboard</a></li>
+                    <li><a href="#" data-target="sec-paquetes">Gestión de Paquetes</a></li>
+                    <li><a href="#" data-target="sec-clientes">Directorio de Clientes</a></li>
                     <li><a href="index.html">← Volver a Web</a></li>
                 </ul>
             </nav>
-        </aside>
+            </aside>
 
-        <!-- Main Content -->
-        <main class="admin-content">
-            <h2 style="margin-bottom: 20px; color: var(--primary-color);">Panel de Control</h2>
-            
-            <!-- Metrics -->
-            <div class="metric-cards">
-                <div class="metric-card">
-                    <div class="metric-info">
-                        <h3>En Almacén CDE</h3>
-                        <h2>45</h2>
+            <!-- Main Content -->
+            <main class="admin-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary-color);" id="admin-page-title">Panel de Control</h2>
+
+            <!-- SECTION: DASHBOARD -->
+            <div id="sec-dashboard" class="admin-section">
+                <!-- Metrics -->
+                <div class="metric-cards">
+                    <div class="metric-card">
+                        <div class="metric-info">
+                            <h3>En Almacén CDE</h3>
+                            <h2 id="metric-cde">0</h2>
+                        </div>
                     </div>
-                </div>
-                <div class="metric-card warning">
-                    <div class="metric-info">
-                        <h3>En Tránsito</h3>
-                        <h2>12</h2>
+                    <div class="metric-card warning">
+                        <div class="metric-info">
+                            <h3>En Tránsito</h3>
+                            <h2 id="metric-transit">0</h2>
+                        </div>
                     </div>
-                </div>
-                <div class="metric-card success">
-                    <div class="metric-info">
-                        <h3>Entregados (Hoy)</h3>
-                        <h2>8</h2>
+                    <div class="metric-card success">
+                        <div class="metric-info">
+                            <h3>Entregados</h3>
+                            <h2 id="metric-delivered">0</h2>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="dashboard-grid">
-                
-                <!-- Table -->
-                <div class="dashboard-table-col">
-                    <h3 style="margin-bottom: 15px; color: var(--primary-color);">Últimos Movimientos</h3>
-                    <div class="data-table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Tracking</th>
-                                    <th>Cliente</th>
-                                    <th>Destino</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="packages-table-body">
-                                <!-- Datos cargados por JS -->
-                            </tbody>
-                            </table>
+            <!-- SECTION: PAQUETES -->
+            <div id="sec-paquetes" class="admin-section" style="display: none;">
+                <div class="dashboard-grid">
+                    <!-- Form (Nuevo Ingreso) -->
+                    <div class="dashboard-form-col">
+                        <h3 style="margin-bottom: 15px; color: var(--primary-color);">1. Nuevo Ingreso</h3>
+                        <form class="admin-form" id="new-package-form">
+                            <div class="form-group">
+                                <label>Nombre del Cliente</label>
+                                <input type="text" id="pkg-client" required placeholder="Ej. Ana Martínez">
                             </div>
+                            <div class="form-group">
+                                <label>Destino</label>
+                                <input type="text" id="pkg-destination" required placeholder="Ej. Córdoba">
                             </div>
+                            <div class="form-group">
+                                <label>Peso (Kg) / Detalles</label>
+                                <input type="text" id="pkg-weight" required placeholder="Ej. 12kg - TV 65''">
+                            </div>
+                            <div class="form-group">
+                                <label>Estado Inicial</label>
+                                <select id="pkg-status">
+                                    <option value="Recibido en CDE">Recibido en CDE</option>
+                                    <option value="Despachando">Despachando</option>
+                                    <option value="En tránsito">En tránsito</option>
+                                    <option value="Llegó a destino">Llegó a destino</option>
+                                    <option value="Listo para retirar">Listo para retirar</option>
+                                    <option value="Entregado">Entregado</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn">Generar ID y Registrar</button>
+                        </form>
 
-                            <!-- Form -->
-                            <div class="dashboard-form-col">
-                            <h3 style="margin-bottom: 15px; color: var(--primary-color);">Nuevo Ingreso</h3>
-                            <form class="admin-form" id="new-package-form">
-                            <div class="form-group">
-                            <label>Nombre del Cliente</label>
-                            <input type="text" id="pkg-client" required placeholder="Ej. Ana Martínez">
-                            </div>
-                            <div class="form-group">
-                            <label>Destino</label>
-                            <input type="text" id="pkg-destination" required placeholder="Ej. Córdoba">
-                            </div>
-                            <div class="form-group">
-                            <label>Peso (Kg)</label>
-                            <input type="number" id="pkg-weight" step="0.1" required placeholder="0.0">
-                            </div>
-                            <div class="form-group">
-                            <label>Estado Inicial</label>
-                            <select id="pkg-status">
-                                <option value="Recibido en CDE">Recibido en CDE</option>
-                                <option value="Despachando">Despachando</option>
-                                <option value="En tránsito">En tránsito</option>
-                                <option value="Llegó a destino">Llegó a destino</option>
-                                <option value="Listo para retirar">Listo para retirar</option>
-                                <option value="Entregado">Entregado</option>
-                            </select>
-                            </div>
-                            <button type="submit" class="btn">Registrar Paquete</button>
-                            </form>
-                            </div>
-                            </div>
-                            </main>
-                            </div>
+                        <!-- Alerta de ID Generado -->
+                        <div id="generated-id-alert" style="display: none; margin-top: 15px; padding: 15px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px;">
+                            <strong>¡Paquete Registrado!</strong><br>
+                            El ID de seguimiento para el cliente es: <br>
+                            <span id="new-generated-id" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);"></span>
+                        </div>
+                    </div>
+
+                    <!-- Table (Gestión y Actualización) -->
+                    <div class="dashboard-table-col">
+                        <h3 style="margin-bottom: 15px; color: var(--primary-color);">2. Actualizar Estado de Paquetes</h3>
+                        <div class="data-table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID / Tracking</th>
+                                        <th>Cliente</th>
+                                        <th>Destino</th>
+                                        <th>Estado Actual</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="packages-table-body">
+                                    <!-- Datos cargados por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: CLIENTES -->
+            <div id="sec-clientes" class="admin-section" style="display: none;">
+                <h3 style="margin-bottom: 15px; color: var(--primary-color);">Directorio de Clientes</h3>
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Cliente</th>
+                                <th>Paquetes Asociados (IDs)</th>
+                                <th>Último Destino</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body">
+                            <!-- Datos cargados por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            </main>                            </div>
 
                             <!-- Modal para Actualizar Estado -->
                             <div id="update-modal" class="modal-overlay" style="display: none;">
