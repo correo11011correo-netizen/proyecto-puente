@@ -60,45 +60,47 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <div class="dashboard-grid">
                 
                 <!-- Table -->
-                <div>
+                <div class="dashboard-table-col">
                     <h3 style="margin-bottom: 15px; color: var(--primary-color);">Últimos Movimientos</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Tracking</th>
-                                <th>Cliente</th>
-                                <th>Destino</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="packages-table-body">
-                            <tr>
-                                <td>#PP-1045</td>
-                                <td>Juan Pérez</td>
-                                <td>CABA</td>
-                                <td><span class="status-badge status-transit">En tránsito</span></td>
-                            </tr>
-                            <tr>
-                                <td>#PP-1046</td>
-                                <td>María Gómez</td>
-                                <td>Rosario</td>
-                                <td><span class="status-badge status-received">Recibido en CDE</span></td>
-                            </tr>
-                            <tr>
-                                <td>#PP-1042</td>
-                                <td>Carlos López</td>
-                                <td>Córdoba</td>
-                                <td><span class="status-badge status-delivered">Entregado</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tracking</th>
+                                    <th>Cliente</th>
+                                    <th>Destino</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packages-table-body">
+                                <tr>
+                                    <td>#PP-1045</td>
+                                    <td>Juan Pérez</td>
+                                    <td>CABA</td>
+                                    <td><span class="status-badge status-transit">En tránsito</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#PP-1046</td>
+                                    <td>María Gómez</td>
+                                    <td>Rosario</td>
+                                    <td><span class="status-badge status-received">Recibido en CDE</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#PP-1042</td>
+                                    <td>Carlos López</td>
+                                    <td>Córdoba</td>
+                                    <td><span class="status-badge status-delivered">Entregado</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Form -->
-                <div>
+                <div class="dashboard-form-col">
                     <h3 style="margin-bottom: 15px; color: var(--primary-color);">Nuevo Ingreso</h3>
                     <form class="admin-form" id="new-package-form">
                         <div class="form-group">
