@@ -60,10 +60,23 @@
             <h3 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Estado del Envío: <span id="res-tracking-id" style="color: var(--primary-color);"></span></h3>
             <p><strong>Cliente:</strong> <span id="res-cliente"></span></p>
             <p><strong>Destino:</strong> <span id="res-destino"></span></p>
+            
             <p style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; color: var(--secondary-color);">Historial de Movimientos:</p>
             <ul id="res-historial" style="list-style-type: none; padding-left: 15px; margin-top: 10px; border-left: 2px solid var(--secondary-color);">
                 <!-- Se llenará dinámicamente -->
             </ul>
+
+            <!-- Sección para dejar mensaje / queja -->
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h4 style="margin-bottom: 10px; color: var(--primary-color);">¿Tienes alguna consulta o inconveniente?</h4>
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">Déjanos un mensaje y nuestro equipo lo revisará asociado a tu paquete.</p>
+                <form id="client-message-form">
+                    <input type="hidden" id="msg-tracking-id">
+                    <textarea id="client-message-text" rows="3" required placeholder="Escribe tu mensaje, queja o consulta aquí..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; resize: vertical;"></textarea>
+                    <button type="submit" class="btn" style="width: 100%; background-color: var(--primary-color); font-size: 0.9rem;">Enviar Mensaje</button>
+                </form>
+                <div id="client-message-success" style="display: none; margin-top: 10px; color: #28a745; font-weight: bold; font-size: 0.9rem;">¡Mensaje enviado correctamente! Nuestro equipo lo leerá pronto.</div>
+            </div>
         </div>
         <div id="tracking-error" style="display: none; margin-top: 20px; color: #ffcccc; font-weight: bold;">
             No se encontró ningún paquete con ese número. Verifica e intenta de nuevo.

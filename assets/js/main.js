@@ -73,10 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const getPackages = () => {
       const savedData = localStorage.getItem('puentePackages');
       if (!savedData) {
-          // Datos iniciales de prueba si está vacío
           const initialData = [
-              { tracking: '#PP-1045', client: 'Juan Pérez', destination: 'CABA', status: 'En tránsito', history: [{date: new Date().toLocaleDateString(), status: 'Recibido en CDE', notes: 'Recibido en oficina Paraguay'}, {date: new Date().toLocaleDateString(), status: 'En tránsito', notes: 'Cruzando hacia Puerto Iguazú'}] },
-              { tracking: '#PP-1046', client: 'María Gómez', destination: 'Rosario', status: 'Recibido en CDE', history: [{date: new Date().toLocaleDateString(), status: 'Recibido en CDE', notes: 'Esperando despacho'}] }
+              { 
+                  tracking: '#PP-1045', client: 'Juan Pérez', destination: 'CABA', status: 'En tránsito', 
+                  history: [{date: new Date().toLocaleDateString(), role: 'Recepción CDE', status: 'Recibido en CDE', notes: 'Recibido en oficina Paraguay'}, {date: new Date().toLocaleDateString(), role: 'Transporte Paraguay', status: 'En tránsito', notes: 'Cruzando hacia Puerto Iguazú'}],
+                  messages: []
+              }
           ];
           localStorage.setItem('puentePackages', JSON.stringify(initialData));
           return initialData;
@@ -88,8 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('puentePackages', JSON.stringify(packages));
   };
 
-  // --- Lógica del Cliente: Seguimiento de Paquete (index.html) ---
+  // --- Lógica del Cliente: Seguimiento y Mensajes (index.html) ---
   const trackingForm = document.getElementById('tracking-form');
+  const clientMessageForm = document.getElementById('client-message-form');
+
   if (trackingForm) {
       trackingForm.addEventListener('submit', (e) => {
           e.preventDefault();
@@ -99,10 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
           
           const resultDiv = document.getElementById('tracking-result');
           const errorDiv = document.getElementById('tracking-error');
+          const messageFormId = document.getElementById('msg-tracking-id');
           
           if (pkg) {
               errorDiv.style.display = 'none';
               resultDiv.style.display = 'block';
+              messageFormId.value = pkg.tracking; // Asociar el formulario de mensajes a este ID
               
               document.getElementById('res-tracking-id').textContent = pkg.tracking;
               document.getElementById('res-cliente').textContent = pkg.client;
@@ -116,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   li.style.padding = '10px 0 10px 20px';
                   li.style.marginBottom = '10px';
                   
-                  // Dot en la línea de tiempo
                   const dot = document.createElement('span');
                   dot.style.position = 'absolute';
                   dot.style.left = '-6px';
@@ -127,12 +132,47 @@ document.addEventListener('DOMContentLoaded', () => {
                   dot.style.backgroundColor = (index === pkg.history.length - 1) ? 'var(--secondary-color)' : '#ccc';
                   
                   li.appendChild(dot);
-                  li.innerHTML += `<strong>${step.status}</strong> <br><small style="color: #666;">${step.date} - ${step.notes || ''}</small>`;
+                  
+                  // Mostrar el ROL si existe
+                  const roleHtml = step.role ? `<span style="font-size: 0.8rem; background: #e9ecef; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">${step.role}</span>` : '';
+                  
+                  li.innerHTML += `<strong>${step.status}</strong> <br><small style="color: #666;">${roleHtml}${step.date} - ${step.notes || ''}</small>`;
                   historyList.appendChild(li);
               });
+              
+              // Resetear form de mensajes visualmente
+              document.getElementById('client-message-success').style.display = 'none';
+              clientMessageForm.style.display = 'block';
+              
           } else {
               resultDiv.style.display = 'none';
               errorDiv.style.display = 'block';
+          }
+      });
+  }
+
+  if (clientMessageForm) {
+      clientMessageForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const trackingId = document.getElementById('msg-tracking-id').value;
+          const messageText = document.getElementById('client-message-text').value;
+          
+          const packages = getPackages();
+          const pkgIndex = packages.findIndex(p => p.tracking === trackingId);
+          
+          if (pkgIndex > -1) {
+              if (!packages[pkgIndex].messages) packages[pkgIndex].messages = [];
+              
+              packages[pkgIndex].messages.push({
+                  date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                  text: messageText
+              });
+              
+              savePackages(packages);
+              
+              document.getElementById('client-message-text').value = '';
+              clientMessageForm.style.display = 'none';
+              document.getElementById('client-message-success').style.display = 'block';
           }
       });
   }
@@ -144,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const updateModal = document.getElementById('update-modal');
   const updateForm = document.getElementById('update-status-form');
 
-  // Navegación por pestañas
   const adminTabs = document.querySelectorAll('#admin-tabs a');
   const adminSections = document.querySelectorAll('.admin-section');
   
@@ -153,12 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
           tab.addEventListener('click', (e) => {
               if (tab.hasAttribute('data-target')) {
                   e.preventDefault();
-                  
-                  // Cambiar clase activa en menú
                   adminTabs.forEach(t => t.classList.remove('active'));
                   tab.classList.add('active');
-                  
-                  // Mostrar sección correspondiente
                   const targetId = tab.getAttribute('data-target');
                   adminSections.forEach(sec => {
                       sec.style.display = (sec.id === targetId) ? 'block' : 'none';
@@ -168,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Actualizar métricas del Dashboard
   const updateDashboardMetrics = (packages) => {
       const cdeCount = packages.filter(p => p.status === 'Recibido en CDE' || p.status === 'Despachando').length;
       const transitCount = packages.filter(p => p.status === 'En tránsito').length;
@@ -183,18 +217,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if(elDelivered) elDelivered.textContent = deliveredCount;
   };
 
-  // Actualizar Tabla de Clientes
   const updateClientsTable = (packages) => {
       if (!clientsTableBody) return;
       
-      // Agrupar por cliente
       const clientsMap = {};
       packages.forEach(pkg => {
           if (!clientsMap[pkg.client]) {
               clientsMap[pkg.client] = { packages: [], lastDestination: pkg.destination };
           }
           clientsMap[pkg.client].packages.push(pkg.tracking);
-          // Actualizar último destino si es necesario (simplificado)
           clientsMap[pkg.client].lastDestination = pkg.destination; 
       });
 
@@ -202,8 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.keys(clientsMap).forEach(clientName => {
           const clientData = clientsMap[clientName];
           const tr = document.createElement('tr');
-          
-          // Formatear los IDs de los paquetes con badges
           const badges = clientData.packages.map(id => `<span style="background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-bottom: 5px;">${id}</span>`).join('');
           
           tr.innerHTML = `
@@ -217,31 +246,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (tableBody) {
     const addPackageToTable = (pkg) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        // Fila principal
+        const trMain = document.createElement('tr');
+        trMain.innerHTML = `
             <td><strong>${pkg.tracking}</strong></td>
             <td>${pkg.client}</td>
             <td>${pkg.destination}</td>
             <td><span class="status-badge ${getBadgeClass(pkg.status)}">${pkg.status}</span></td>
-            <td><button class="btn btn-update-status" data-id="${pkg.tracking}" style="padding: 5px 10px; font-size: 0.8rem;">Actualizar</button></td>
+            <td><button class="btn btn-toggle-details" style="padding: 5px 10px; font-size: 0.8rem; background-color: var(--primary-color);">Gestionar ▾</button></td>
         `;
-        tableBody.appendChild(tr); 
+        tableBody.appendChild(trMain); 
+
+        // Fila de detalles (desplegable debajo)
+        const trDetails = document.createElement('tr');
+        trDetails.style.display = 'none';
+        trDetails.style.backgroundColor = '#fcfcfc';
+        
+        // Renderizar mensajes del cliente
+        let messagesHtml = '<p style="color: #999; font-size: 0.85rem; font-style: italic;">No hay mensajes del cliente.</p>';
+        if (pkg.messages && pkg.messages.length > 0) {
+            messagesHtml = '<ul style="list-style-type: none; padding-left: 0; margin-bottom: 10px; font-size: 0.85rem;">';
+            pkg.messages.forEach(msg => {
+                messagesHtml += `<li style="margin-bottom: 5px; background: #fff3cd; border-left: 3px solid #ffc107; padding: 5px 10px;">
+                    <strong>💬 Cliente (${msg.date}):</strong> ${msg.text}
+                </li>`;
+            });
+            messagesHtml += '</ul>';
+        }
+
+        trDetails.innerHTML = `
+            <td colspan="5" style="padding: 15px; border-top: 1px dashed #ddd; border-bottom: 2px solid var(--primary-color);">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; color: var(--primary-color); margin-bottom: 5px;">Quejas y Mensajes del Cliente:</h4>
+                        ${messagesHtml}
+                    </div>
+                    <div>
+                        <button class="btn btn-update-status btn-outline" data-id="${pkg.tracking}" style="padding: 5px 15px; font-size: 0.85rem; width: 100%;">⚙️ Actualizar Estado</button>
+                    </div>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(trDetails);
+
+        // Lógica para desplegar detalles
+        const toggleBtn = trMain.querySelector('.btn-toggle-details');
+        toggleBtn.addEventListener('click', () => {
+            if (trDetails.style.display === 'none') {
+                trDetails.style.display = 'table-row';
+                toggleBtn.textContent = 'Cerrar ▴';
+                toggleBtn.style.backgroundColor = '#666';
+            } else {
+                trDetails.style.display = 'none';
+                toggleBtn.textContent = 'Gestionar ▾';
+                toggleBtn.style.backgroundColor = 'var(--primary-color)';
+            }
+        });
     };
 
     const renderData = () => {
         const packages = getPackages();
         
-        // Tabla de Paquetes
         if (tableBody) {
             tableBody.innerHTML = ''; 
             packages.forEach(pkg => addPackageToTable(pkg));
         }
         
-        // Actualizar el resto del sistema
         updateDashboardMetrics(packages);
         updateClientsTable(packages);
 
-        // Eventos para botones de Actualizar
+        // Eventos para el botón "Actualizar Estado" dentro del desplegable
         document.querySelectorAll('.btn-update-status').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const trackingId = e.target.getAttribute('data-id');
@@ -250,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const pkg = getPackages().find(p => p.tracking === trackingId);
                 document.getElementById('update-status-select').value = pkg.status;
-                document.getElementById('update-location').value = ''; // Limpiar
+                document.getElementById('update-location').value = ''; 
                 
                 updateModal.style.display = 'flex';
             });
@@ -270,32 +344,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const tracking = '#PP-' + randomNum;
 
-        // Crear paquete con historial inicial
         const newPackage = { 
             tracking, 
             client, 
             destination, 
             status,
             history: [
-                { date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), status: status, notes: 'Paquete ingresado al sistema' }
-            ]
+                { 
+                    date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), 
+                    role: 'Administración Central',
+                    status: status, 
+                    notes: 'Paquete ingresado al sistema' 
+                }
+            ],
+            messages: []
         };
 
         const packages = getPackages();
         packages.unshift(newPackage);
         savePackages(packages);
 
-        renderData(); // Recargar todas las tablas y métricas
+        renderData(); 
         form.reset();
         
-        // Mostrar Alerta con el ID Generado
         const alertBox = document.getElementById('generated-id-alert');
         const idSpan = document.getElementById('new-generated-id');
         if (alertBox && idSpan) {
             idSpan.textContent = tracking;
             alertBox.style.display = 'block';
-            
-            // Ocultar alerta después de unos segundos
             setTimeout(() => {
                 alertBox.style.display = 'none';
             }, 8000);
@@ -319,11 +395,12 @@ document.addEventListener('DOMContentLoaded', () => {
         updateModal.style.display = 'none';
     });
 
-    // Guardar actualización de estado
+    // Guardar actualización de estado con el ROL
     if (updateForm) {
         updateForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const trackingId = document.getElementById('update-tracking-input').value;
+            const newRole = document.getElementById('update-role-select').value;
             const newStatus = document.getElementById('update-status-select').value;
             const newLocation = document.getElementById('update-location').value;
 
@@ -334,12 +411,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 packages[pkgIndex].status = newStatus;
                 packages[pkgIndex].history.push({
                     date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    role: newRole,
                     status: newStatus,
                     notes: newLocation
                 });
                 
                 savePackages(packages);
-                renderData(); // Recargar todo el sistema
+                renderData();
                 updateModal.style.display = 'none';
                 
                 alert(`Estado del paquete ${trackingId} actualizado con éxito.`);
